@@ -58,27 +58,33 @@ class FinanceViewModel {
     // MARK: - Hebel (Slider im Dashboard)
 
     var foodBudget: Double {
-        didSet { UserDefaults.standard.set(foodBudget, forKey: "foodBudget") }
+        didSet { UserDefaults.standard.set(foodBudget, forKey: "foodBudget"); clampSavings() }
     }
 
     var careBudget: Double {
-        didSet { UserDefaults.standard.set(careBudget, forKey: "careBudget") }
+        didSet { UserDefaults.standard.set(careBudget, forKey: "careBudget"); clampSavings() }
     }
 
     var clothingBudget: Double {
-        didSet { UserDefaults.standard.set(clothingBudget, forKey: "clothingBudget") }
+        didSet { UserDefaults.standard.set(clothingBudget, forKey: "clothingBudget"); clampSavings() }
     }
 
     var hobbyLimit: Double {
-        didSet { UserDefaults.standard.set(hobbyLimit, forKey: "hobbyLimit") }
+        didSet { UserDefaults.standard.set(hobbyLimit, forKey: "hobbyLimit"); clampSavings() }
     }
 
     var extrasBudget: Double {
-        didSet { UserDefaults.standard.set(extrasBudget, forKey: "extrasBudget") }
+        didSet { UserDefaults.standard.set(extrasBudget, forKey: "extrasBudget"); clampSavings() }
     }
 
     var monthlySavingsTarget: Double {
         didSet { UserDefaults.standard.set(monthlySavingsTarget, forKey: "monthlySavingsTarget") }
+    }
+
+    private func clampSavings() {
+        if monthlySavingsTarget > maxSavings {
+            monthlySavingsTarget = maxSavings
+        }
     }
 
     // MARK: - UI State
