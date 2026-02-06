@@ -39,34 +39,12 @@ struct SetupView: View {
                             .keyboardType(.decimalPad)
                             .multilineTextAlignment(.trailing)
                     }
-                    LabeledContent("Lebensmittel") {
-                        TextField("0", value: $viewModel.foodBudget, format: .number)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                    }
-                    LabeledContent("Pflege & Hygiene") {
-                        TextField("0", value: $viewModel.careBudget, format: .number)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                    }
-                    LabeledContent("Kleidung") {
-                        TextField("0", value: $viewModel.clothingBudget, format: .number)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                    }
                 }
 
-                Section("Flexible Ausgaben") {
-                    LabeledContent("Hobby-Budget") {
-                        TextField("0", value: $viewModel.hobbyLimit, format: .number)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                    }
-                    LabeledContent("Extras (Bier/Eis)") {
-                        TextField("0", value: $viewModel.extrasBudget, format: .number)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                    }
+                Section {
+                    Text("Alle anderen Budgets kannst du im Dashboard mit Slidern anpassen.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
 
                 if let warning = validationWarning {
@@ -96,8 +74,8 @@ struct SetupView: View {
         if viewModel.targetGoal <= 0 {
             return "Dein Sparziel muss größer als 0 sein."
         }
-        if viewModel.totalExpenses >= viewModel.monthlyIncome {
-            return "Deine Ausgaben übersteigen dein Einkommen."
+        if viewModel.fixedCosts >= viewModel.monthlyIncome {
+            return "Deine Fixkosten übersteigen dein Einkommen."
         }
         return nil
     }
