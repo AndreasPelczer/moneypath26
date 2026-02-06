@@ -11,7 +11,7 @@ struct SetupView: View {
                 Section("Dein Sparziel") {
                     TextField("Zielbetrag (€)", value: $viewModel.targetGoal, format: .number)
                         .keyboardType(.decimalPad)
-                    DatePicker("Bis wann?", selection: $viewModel.targetDate, in: Date()..., displayedComponents: .date)
+                    DatePicker("Zieldatum", selection: $viewModel.targetDate, in: Date()..., displayedComponents: .date)
                     TextField("Name des Extras (z.B. Jever Reise)", text: $viewModel.extraMoneyName)
                 }
 

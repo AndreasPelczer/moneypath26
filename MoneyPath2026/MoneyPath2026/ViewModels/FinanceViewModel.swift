@@ -100,6 +100,18 @@ class FinanceViewModel {
         return (0..<12).map { allMonths[(currentMonth + $0) % 12] }
     }
 
+    // Ausgewählter Monat als Label (z.B. "Feb 2026")
+    var selectedMonthLabel: String {
+        let cal = Calendar.current
+        guard let date = cal.date(byAdding: .month, value: selectedMonthIndex, to: Date()) else {
+            return monthNames[selectedMonthIndex]
+        }
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "de_DE")
+        formatter.dateFormat = "MMM yyyy"
+        return formatter.string(from: date)
+    }
+
     // MARK: - Init
 
     init() {
@@ -136,7 +148,7 @@ class FinanceViewModel {
     }
 
     var accumulatedExtraMoney: Double {
-        monthlyExtraSurplus * Double(selectedMonthIndex + 1)
+        monthlyExtraSurplus * Double(selectedMonthIndex)
     }
 
     var monthlySavings: Double {
@@ -146,7 +158,8 @@ class FinanceViewModel {
     var prognosisData: [Double] {
         var data: [Double] = []
         var runningTotal = currentTotal
-        for _ in 0..<12 {
+        data.append(runningTotal) // Monat 0 = jetzt, nur Kontostand
+        for _ in 1..<12 {
             runningTotal += monthlySavings
             data.append(runningTotal)
         }
