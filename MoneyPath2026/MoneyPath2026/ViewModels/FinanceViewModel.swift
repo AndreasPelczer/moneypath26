@@ -3,7 +3,7 @@ import Observation
 
 @Observable
 class FinanceViewModel {
-    // MARK: - Persisted Properties (reactive via manual notify)
+    // MARK: - Setup-Werte (fix, werden im Setup gesetzt)
 
     var giroBalance: Double {
         get { UserDefaults.standard.double(forKey: "giroBalance") }
@@ -55,28 +55,18 @@ class FinanceViewModel {
         set { UserDefaults.standard.set(newValue, forKey: "fixedCosts") }
     }
 
+    // MARK: - Hebel (Slider im Dashboard)
+
     var foodBudget: Double {
-        get {
-            let v = UserDefaults.standard.double(forKey: "foodBudget")
-            return v == 0 ? 150.0 : v
-        }
-        set { UserDefaults.standard.set(newValue, forKey: "foodBudget") }
+        didSet { UserDefaults.standard.set(foodBudget, forKey: "foodBudget") }
     }
 
     var careBudget: Double {
-        get {
-            let v = UserDefaults.standard.double(forKey: "careBudget")
-            return v == 0 ? 40.0 : v
-        }
-        set { UserDefaults.standard.set(newValue, forKey: "careBudget") }
+        didSet { UserDefaults.standard.set(careBudget, forKey: "careBudget") }
     }
 
     var clothingBudget: Double {
-        get {
-            let v = UserDefaults.standard.double(forKey: "clothingBudget")
-            return v == 0 ? 60.0 : v
-        }
-        set { UserDefaults.standard.set(newValue, forKey: "clothingBudget") }
+        didSet { UserDefaults.standard.set(clothingBudget, forKey: "clothingBudget") }
     }
 
     var hobbyLimit: Double {
@@ -85,6 +75,10 @@ class FinanceViewModel {
 
     var extrasBudget: Double {
         didSet { UserDefaults.standard.set(extrasBudget, forKey: "extrasBudget") }
+    }
+
+    var monthlySavingsTarget: Double {
+        didSet { UserDefaults.standard.set(monthlySavingsTarget, forKey: "monthlySavingsTarget") }
     }
 
     // MARK: - UI State
@@ -115,11 +109,18 @@ class FinanceViewModel {
     // MARK: - Init
 
     init() {
-        let storedHobby = UserDefaults.standard.object(forKey: "hobbyLimit")
-        self.hobbyLimit = storedHobby != nil ? UserDefaults.standard.double(forKey: "hobbyLimit") : 200.0
+        self.foodBudget = Self.loadOrDefault("foodBudget", fallback: 150.0)
+        self.careBudget = Self.loadOrDefault("careBudget", fallback: 40.0)
+        self.clothingBudget = Self.loadOrDefault("clothingBudget", fallback: 60.0)
+        self.hobbyLimit = Self.loadOrDefault("hobbyLimit", fallback: 200.0)
+        self.extrasBudget = Self.loadOrDefault("extrasBudget", fallback: 50.0)
+        self.monthlySavingsTarget = Self.loadOrDefault("monthlySavingsTarget", fallback: 300.0)
+    }
 
-        let storedExtras = UserDefaults.standard.object(forKey: "extrasBudget")
-        self.extrasBudget = storedExtras != nil ? UserDefaults.standard.double(forKey: "extrasBudget") : 50.0
+    private static func loadOrDefault(_ key: String, fallback: Double) -> Double {
+        UserDefaults.standard.object(forKey: key) != nil
+            ? UserDefaults.standard.double(forKey: key)
+            : fallback
     }
 
     // MARK: - Berechnungen
@@ -133,26 +134,37 @@ class FinanceViewModel {
         return max(0.5, m + d)
     }
 
+    // Info: was man bräuchte um das Ziel zu schaffen
     var requiredMonthlySavings: Double {
         let gap = targetGoal - currentTotal
         return gap > 0 ? gap / monthsRemaining : 0
     }
 
-    var totalExpenses: Double {
-        fixedCosts + foodBudget + careBudget + clothingBudget + hobbyLimit + extrasBudget
+    var lifestyleExpenses: Double {
+        foodBudget + careBudget + clothingBudget + hobbyLimit + extrasBudget
     }
 
+    var totalExpenses: Double {
+        fixedCosts + lifestyleExpenses
+    }
+
+    // Wieviel ist maximal zum Sparen verfügbar
+    var maxSavings: Double {
+        max(0, monthlyIncome - totalExpenses)
+    }
+
+    // Was nach allen Ausgaben + Sparrate übrig bleibt = Extra Money
     var monthlyExtraSurplus: Double {
-        let left = monthlyIncome - totalExpenses - requiredMonthlySavings
-        return max(0, left)
+        max(0, monthlyIncome - totalExpenses - monthlySavingsTarget)
     }
 
     var accumulatedExtraMoney: Double {
         monthlyExtraSurplus * Double(selectedMonthIndex)
     }
 
-    var monthlySavings: Double {
-        requiredMonthlySavings + monthlyExtraSurplus
+    // Wird das Sparziel mit der aktuellen Sparrate erreicht?
+    var goalReachable: Bool {
+        monthlySavingsTarget >= requiredMonthlySavings
     }
 
     var prognosisData: [Double] {
@@ -160,7 +172,7 @@ class FinanceViewModel {
         var runningTotal = currentTotal
         data.append(runningTotal) // Monat 0 = jetzt, nur Kontostand
         for _ in 1..<12 {
-            runningTotal += monthlySavings
+            runningTotal += monthlySavingsTarget
             data.append(runningTotal)
         }
         return data

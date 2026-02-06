@@ -8,6 +8,7 @@ struct DashboardView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 25) {
+                // Sparziel-Ring
                 CircularGoalView(
                     current: viewModel.prognosisData[viewModel.selectedMonthIndex],
                     target: viewModel.targetGoal,
@@ -37,7 +38,6 @@ struct DashboardView: View {
                             .font(.caption2).foregroundStyle(.secondary)
                     }
 
-                    // Monatspunkte als visuelle Orientierung
                     HStack(spacing: 0) {
                         ForEach(0..<12, id: \.self) { i in
                             Circle()
@@ -51,21 +51,51 @@ struct DashboardView: View {
                 .padding()
                 .background(RoundedRectangle(cornerRadius: 25).fill(Color(.secondarySystemBackground)))
 
-                VStack(spacing: 20) {
-                    Text("Deine Hebel").font(.headline).frame(maxWidth: .infinity, alignment: .leading)
-                    BudgetSlider(title: "Hobby-Limit", value: $viewModel.hobbyLimit, range: 0...800, color: .orange, icon: "bicycle")
-                    BudgetSlider(title: "Extras (Bier/Eis)", value: $viewModel.extrasBudget, range: 0...200, color: .red, icon: "mug.fill")
-                }
-                .padding()
-                .background(RoundedRectangle(cornerRadius: 25).fill(Color(.secondarySystemBackground)))
-
-                SavingsPowerChart(viewModel: viewModel)
-
+                // Extra Money - das Herzstück
                 InfoStrategyBox(
                     amount: viewModel.accumulatedExtraMoney,
                     extraName: viewModel.extraMoneyName,
                     month: viewModel.monthNames[viewModel.selectedMonthIndex]
                 )
+
+                // Spar-Hebel
+                VStack(spacing: 20) {
+                    HStack {
+                        Text("Sparrate").font(.headline)
+                        Spacer()
+                        if viewModel.goalReachable {
+                            Label("Ziel erreichbar", systemImage: "checkmark.circle.fill")
+                                .font(.caption).foregroundStyle(.green)
+                        } else {
+                            Label("Brauchst \(viewModel.requiredMonthlySavings, specifier: "%.0f") €/M", systemImage: "exclamationmark.triangle.fill")
+                                .font(.caption).foregroundStyle(.orange)
+                        }
+                    }
+                    BudgetSlider(
+                        title: "Monatlich sparen",
+                        value: $viewModel.monthlySavingsTarget,
+                        range: 0...max(50, viewModel.maxSavings),
+                        color: .blue,
+                        icon: "banknote.fill"
+                    )
+                }
+                .padding()
+                .background(RoundedRectangle(cornerRadius: 25).fill(Color(.secondarySystemBackground)))
+
+                // Lifestyle-Hebel
+                VStack(spacing: 20) {
+                    Text("Deine Hebel").font(.headline).frame(maxWidth: .infinity, alignment: .leading)
+                    BudgetSlider(title: "Lebensmittel", value: $viewModel.foodBudget, range: 50...500, color: .green, icon: "cart.fill")
+                    BudgetSlider(title: "Pflege & Hygiene", value: $viewModel.careBudget, range: 0...200, color: .teal, icon: "drop.fill")
+                    BudgetSlider(title: "Kleidung", value: $viewModel.clothingBudget, range: 0...300, color: .purple, icon: "tshirt.fill")
+                    BudgetSlider(title: "Hobby", value: $viewModel.hobbyLimit, range: 0...800, color: .orange, icon: "bicycle")
+                    BudgetSlider(title: "Extras (Bier/Eis)", value: $viewModel.extrasBudget, range: 0...200, color: .red, icon: "mug.fill")
+                }
+                .padding()
+                .background(RoundedRectangle(cornerRadius: 25).fill(Color(.secondarySystemBackground)))
+
+                // Kosten-Übersicht
+                SavingsPowerChart(viewModel: viewModel)
             }
             .padding()
         }

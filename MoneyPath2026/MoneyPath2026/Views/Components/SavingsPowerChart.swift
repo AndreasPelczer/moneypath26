@@ -8,9 +8,11 @@ struct SavingsPowerChart: View {
         [
             ("Miete/Fixes", viewModel.fixedCosts, .gray),
             ("Lebensmittel", viewModel.foodBudget, .green),
+            ("Pflege", viewModel.careBudget, .teal),
+            ("Kleidung", viewModel.clothingBudget, .purple),
             ("Hobby", viewModel.hobbyLimit, .orange),
             ("Extras", viewModel.extrasBudget, .red),
-            ("Sparen", viewModel.monthlySavings, .blue),
+            ("Sparen", viewModel.monthlySavingsTarget, .blue),
         ]
     }
 
