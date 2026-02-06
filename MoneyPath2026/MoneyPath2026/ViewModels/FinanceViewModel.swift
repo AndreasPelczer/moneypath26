@@ -31,14 +31,6 @@ class FinanceViewModel {
         set { UserDefaults.standard.set(newValue, forKey: "targetDate") }
     }
 
-    var startDate: Date {
-        get {
-            let stored = UserDefaults.standard.object(forKey: "startDate") as? Date
-            return stored ?? Date()
-        }
-        set { UserDefaults.standard.set(newValue, forKey: "startDate") }
-    }
-
     var extraMoneyName: String {
         get {
             let v = UserDefaults.standard.string(forKey: "extraMoneyName")
@@ -99,19 +91,19 @@ class FinanceViewModel {
 
     var selectedMonthIndex: Int = 0
 
-    // Dynamische Monatsnamen ab Startdatum
+    // Dynamische Monatsnamen ab aktuellem Monat
     var monthNames: [String] {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "de_DE")
         let allMonths = formatter.shortMonthSymbols!
-        let startMonth = Calendar.current.component(.month, from: startDate) - 1
-        return (0..<12).map { allMonths[(startMonth + $0) % 12] }
+        let currentMonth = Calendar.current.component(.month, from: Date()) - 1
+        return (0..<12).map { allMonths[(currentMonth + $0) % 12] }
     }
 
     // Ausgewählter Monat als Label (z.B. "Feb 2026")
     var selectedMonthLabel: String {
         let cal = Calendar.current
-        guard let date = cal.date(byAdding: .month, value: selectedMonthIndex, to: startDate) else {
+        guard let date = cal.date(byAdding: .month, value: selectedMonthIndex, to: Date()) else {
             return monthNames[selectedMonthIndex]
         }
         let formatter = DateFormatter()
@@ -135,7 +127,7 @@ class FinanceViewModel {
     var currentTotal: Double { giroBalance + savingsBalance }
 
     var monthsRemaining: Double {
-        let diff = Calendar.current.dateComponents([.month, .day], from: startDate, to: targetDate)
+        let diff = Calendar.current.dateComponents([.month, .day], from: Date(), to: targetDate)
         let m = Double(diff.month ?? 0)
         let d = Double(diff.day ?? 0) / 30.0
         return max(0.5, m + d)

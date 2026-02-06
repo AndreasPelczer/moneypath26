@@ -8,14 +8,10 @@ struct SetupView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Zeitraum") {
-                    DatePicker("Startdatum", selection: $viewModel.startDate, displayedComponents: .date)
-                    DatePicker("Zieldatum", selection: $viewModel.targetDate, in: viewModel.startDate..., displayedComponents: .date)
-                }
-
                 Section("Dein Sparziel") {
                     TextField("Zielbetrag (€)", value: $viewModel.targetGoal, format: .number)
                         .keyboardType(.decimalPad)
+                    DatePicker("Zieldatum", selection: $viewModel.targetDate, in: Date()..., displayedComponents: .date)
                     TextField("Name des Extras (z.B. Jever Reise)", text: $viewModel.extraMoneyName)
                 }
 
