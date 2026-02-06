@@ -148,7 +148,7 @@ class FinanceViewModel {
     }
 
     var accumulatedExtraMoney: Double {
-        monthlyExtraSurplus * Double(selectedMonthIndex + 1)
+        monthlyExtraSurplus * Double(selectedMonthIndex)
     }
 
     var monthlySavings: Double {
@@ -158,7 +158,8 @@ class FinanceViewModel {
     var prognosisData: [Double] {
         var data: [Double] = []
         var runningTotal = currentTotal
-        for _ in 0..<12 {
+        data.append(runningTotal) // Monat 0 = jetzt, nur Kontostand
+        for _ in 1..<12 {
             runningTotal += monthlySavings
             data.append(runningTotal)
         }
