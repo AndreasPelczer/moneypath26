@@ -3,16 +3,46 @@ import Charts
 
 struct SavingsPowerChart: View {
     let viewModel: FinanceViewModel
+
+    private var chartData: [(label: String, value: Double, color: Color)] {
+        [
+            ("Miete/Fixes", viewModel.fixedCosts, .gray),
+            ("Lebensmittel", viewModel.foodBudget, .green),
+            ("Hobby", viewModel.hobbyLimit, .orange),
+            ("Extras", viewModel.extrasBudget, .red),
+            ("Sparen", viewModel.monthlySavings, .blue),
+        ]
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Kosten-Struktur").font(.headline)
+
             Chart {
-                BarMark(x: .value("K", "Plan"), y: .value("€", viewModel.fixedCosts)).foregroundStyle(.gray.opacity(0.5))
-                BarMark(x: .value("K", "Plan"), y: .value("€", viewModel.foodBudget)).foregroundStyle(.green.opacity(0.6))
-                BarMark(x: .value("K", "Plan"), y: .value("€", viewModel.hobbyLimit)).foregroundStyle(.orange)
-                BarMark(x: .value("K", "Plan"), y: .value("€", viewModel.extrasBudget)).foregroundStyle(.red)
-                BarMark(x: .value("K", "Plan"), y: .value("€", viewModel.monthlySavings)).foregroundStyle(.blue.gradient)
-            }.frame(height: 200)
-        }.padding().background(RoundedRectangle(cornerRadius: 25).fill(Color(.secondarySystemBackground)))
+                ForEach(chartData, id: \.label) { item in
+                    BarMark(
+                        x: .value("Kategorie", "Monat"),
+                        y: .value("€", item.value)
+                    )
+                    .foregroundStyle(item.color.gradient)
+                }
+            }
+            .frame(height: 200)
+
+            // Legende
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 6) {
+                ForEach(chartData, id: \.label) { item in
+                    HStack(spacing: 6) {
+                        Circle().fill(item.color).frame(width: 8, height: 8)
+                        Text("\(item.label): \(item.value, specifier: "%.0f") €")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                    }
+                }
+            }
+        }
+        .padding()
+        .background(RoundedRectangle(cornerRadius: 25).fill(Color(.secondarySystemBackground)))
     }
 }

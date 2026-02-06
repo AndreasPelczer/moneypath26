@@ -3,32 +3,117 @@ import Observation
 
 @Observable
 class FinanceViewModel {
-    // Falls diese Variablen fehlen, findet DashboardView den Typ nicht!
-    @ObservationIgnored @AppStorage("giroBalance") var giroBalance: Double = 0.0
-    @ObservationIgnored @AppStorage("savingsBalance") var savingsBalance: Double = 0.0
-    @ObservationIgnored @AppStorage("targetGoal") var targetGoal: Double = 4000.0
-    @ObservationIgnored @AppStorage("targetDate") var targetDate: Date = Date().addingTimeInterval(3600*24*150)
-    @ObservationIgnored @AppStorage("extraMoneyName") var extraMoneyName: String = "ExtraMoney"
+    // MARK: - Persisted Properties (reactive via manual notify)
 
-    @ObservationIgnored @AppStorage("monthlyIncome") var monthlyIncome: Double = 2250.0
-    @ObservationIgnored @AppStorage("fixedCosts") var fixedCosts: Double = 770.0
-    @ObservationIgnored @AppStorage("foodBudget") var foodBudget: Double = 150.0
-    @ObservationIgnored @AppStorage("careBudget") var careBudget: Double = 40.0
-    @ObservationIgnored @AppStorage("clothingBudget") var clothingBudget: Double = 60.0
-    
-    var hobbyLimit: Double { didSet { UserDefaults.standard.set(hobbyLimit, forKey: "hobbyLimit") } }
-    var extrasBudget: Double { didSet { UserDefaults.standard.set(extrasBudget, forKey: "extrasBudget") } }
-    
-    var selectedMonthIndex: Int = 0
-    let monthNames = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"]
-    
-    init() {
-        self.hobbyLimit = UserDefaults.standard.double(forKey: "hobbyLimit") == 0 ? 200.0 : UserDefaults.standard.double(forKey: "hobbyLimit")
-        self.extrasBudget = UserDefaults.standard.double(forKey: "extrasBudget") == 0 ? 50.0 : UserDefaults.standard.double(forKey: "extrasBudget")
+    var giroBalance: Double {
+        get { UserDefaults.standard.double(forKey: "giroBalance") }
+        set { UserDefaults.standard.set(newValue, forKey: "giroBalance") }
     }
 
+    var savingsBalance: Double {
+        get { UserDefaults.standard.double(forKey: "savingsBalance") }
+        set { UserDefaults.standard.set(newValue, forKey: "savingsBalance") }
+    }
+
+    var targetGoal: Double {
+        get {
+            let v = UserDefaults.standard.double(forKey: "targetGoal")
+            return v == 0 ? 4000.0 : v
+        }
+        set { UserDefaults.standard.set(newValue, forKey: "targetGoal") }
+    }
+
+    var targetDate: Date {
+        get {
+            let stored = UserDefaults.standard.object(forKey: "targetDate") as? Date
+            return stored ?? Date().addingTimeInterval(3600 * 24 * 150)
+        }
+        set { UserDefaults.standard.set(newValue, forKey: "targetDate") }
+    }
+
+    var extraMoneyName: String {
+        get {
+            let v = UserDefaults.standard.string(forKey: "extraMoneyName")
+            return (v == nil || v!.isEmpty) ? "ExtraMoney" : v!
+        }
+        set { UserDefaults.standard.set(newValue, forKey: "extraMoneyName") }
+    }
+
+    var monthlyIncome: Double {
+        get {
+            let v = UserDefaults.standard.double(forKey: "monthlyIncome")
+            return v == 0 ? 2250.0 : v
+        }
+        set { UserDefaults.standard.set(newValue, forKey: "monthlyIncome") }
+    }
+
+    var fixedCosts: Double {
+        get {
+            let v = UserDefaults.standard.double(forKey: "fixedCosts")
+            return v == 0 ? 770.0 : v
+        }
+        set { UserDefaults.standard.set(newValue, forKey: "fixedCosts") }
+    }
+
+    var foodBudget: Double {
+        get {
+            let v = UserDefaults.standard.double(forKey: "foodBudget")
+            return v == 0 ? 150.0 : v
+        }
+        set { UserDefaults.standard.set(newValue, forKey: "foodBudget") }
+    }
+
+    var careBudget: Double {
+        get {
+            let v = UserDefaults.standard.double(forKey: "careBudget")
+            return v == 0 ? 40.0 : v
+        }
+        set { UserDefaults.standard.set(newValue, forKey: "careBudget") }
+    }
+
+    var clothingBudget: Double {
+        get {
+            let v = UserDefaults.standard.double(forKey: "clothingBudget")
+            return v == 0 ? 60.0 : v
+        }
+        set { UserDefaults.standard.set(newValue, forKey: "clothingBudget") }
+    }
+
+    var hobbyLimit: Double {
+        didSet { UserDefaults.standard.set(hobbyLimit, forKey: "hobbyLimit") }
+    }
+
+    var extrasBudget: Double {
+        didSet { UserDefaults.standard.set(extrasBudget, forKey: "extrasBudget") }
+    }
+
+    // MARK: - UI State
+
+    var selectedMonthIndex: Int = 0
+
+    // Dynamische Monatsnamen ab aktuellem Monat
+    var monthNames: [String] {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "de_DE")
+        let allMonths = formatter.shortMonthSymbols!
+        let currentMonth = Calendar.current.component(.month, from: Date()) - 1
+        return (0..<12).map { allMonths[(currentMonth + $0) % 12] }
+    }
+
+    // MARK: - Init
+
+    init() {
+        let storedHobby = UserDefaults.standard.object(forKey: "hobbyLimit")
+        self.hobbyLimit = storedHobby != nil ? UserDefaults.standard.double(forKey: "hobbyLimit") : 200.0
+
+        let storedExtras = UserDefaults.standard.object(forKey: "extrasBudget")
+        self.extrasBudget = storedExtras != nil ? UserDefaults.standard.double(forKey: "extrasBudget") : 50.0
+    }
+
+    // MARK: - Berechnungen
+
     var currentTotal: Double { giroBalance + savingsBalance }
-    
+
     var monthsRemaining: Double {
         let diff = Calendar.current.dateComponents([.month, .day], from: Date(), to: targetDate)
         let m = Double(diff.month ?? 0)
@@ -40,10 +125,13 @@ class FinanceViewModel {
         let gap = targetGoal - currentTotal
         return gap > 0 ? gap / monthsRemaining : 0
     }
-    
+
+    var totalExpenses: Double {
+        fixedCosts + foodBudget + careBudget + clothingBudget + hobbyLimit + extrasBudget
+    }
+
     var monthlyExtraSurplus: Double {
-        let expenses = fixedCosts + foodBudget + careBudget + clothingBudget + hobbyLimit + extrasBudget
-        let left = monthlyIncome - expenses - requiredMonthlySavings
+        let left = monthlyIncome - totalExpenses - requiredMonthlySavings
         return max(0, left)
     }
 
@@ -59,8 +147,8 @@ class FinanceViewModel {
         var data: [Double] = []
         var runningTotal = currentTotal
         for _ in 0..<12 {
+            runningTotal += monthlySavings
             data.append(runningTotal)
-            runningTotal += requiredMonthlySavings
         }
         return data
     }
