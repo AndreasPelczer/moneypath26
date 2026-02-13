@@ -4,6 +4,7 @@ struct DashboardView: View {
     @Bindable var viewModel: FinanceViewModel
     @State private var showSettings = false
     @State private var showSupport = false
+    @State private var showPrivacy = false
 
     var body: some View {
         ScrollView {
@@ -107,10 +108,16 @@ struct DashboardView: View {
                 }
             }
             ToolbarItem(placement: .topBarTrailing) {
-                Button { showSettings = true } label: { Image(systemName: "gearshape.fill") }
+                HStack(spacing: 16) {
+                    Button { showPrivacy = true } label: {
+                        Image(systemName: "lock.shield.fill").foregroundStyle(.gray)
+                    }
+                    Button { showSettings = true } label: { Image(systemName: "gearshape.fill") }
+                }
             }
         }
         .sheet(isPresented: $showSettings) { SetupView(viewModel: viewModel) }
         .sheet(isPresented: $showSupport) { SupportView() }
+        .sheet(isPresented: $showPrivacy) { PrivacyPolicyView() }
     }
 }
