@@ -4,5 +4,11 @@
 <dict>
 	<key>CFBundleIdentifier</key>
 	<string></string>
+	<key>CFBundleDisplayName</key>
+	<string>MoneyPath</string>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>de</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>
