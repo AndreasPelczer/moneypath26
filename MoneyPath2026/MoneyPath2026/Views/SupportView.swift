@@ -1,5 +1,7 @@
 import SwiftUI
 
+/// Legacy SupportView – replaced by DeadRabbitAboutView and TipJarDialogView in v3.
+/// Kept for structural compatibility; no longer presented from DashboardView.
 struct SupportView: View {
     @Environment(\.dismiss) var dismiss
     var body: some View {
