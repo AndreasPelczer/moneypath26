@@ -4,6 +4,20 @@ import Charts
 struct SavingsPowerChart: View {
     let viewModel: FinanceViewModel
 
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+    private var chartHeight: CGFloat {
+        horizontalSizeClass == .regular ? 300 : 200
+    }
+
+    private var legendColumns: [GridItem] {
+        if horizontalSizeClass == .regular {
+            [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())]
+        } else {
+            [GridItem(.flexible()), GridItem(.flexible())]
+        }
+    }
+
     private var chartData: [(label: String, value: Double, color: Color)] {
         [
             ("Miete/Fixes", viewModel.fixedCosts, .gray),
@@ -29,10 +43,10 @@ struct SavingsPowerChart: View {
                     .foregroundStyle(item.color.gradient)
                 }
             }
-            .frame(height: 200)
+            .frame(height: chartHeight)
 
             // Legende
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 6) {
+            LazyVGrid(columns: legendColumns, spacing: 6) {
                 ForEach(chartData, id: \.label) { item in
                     HStack(spacing: 6) {
                         Circle().fill(item.color).frame(width: 8, height: 8)
