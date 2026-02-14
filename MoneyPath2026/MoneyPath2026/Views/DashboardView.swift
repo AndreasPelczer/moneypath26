@@ -2,9 +2,14 @@ import SwiftUI
 
 struct DashboardView: View {
     @Bindable var viewModel: FinanceViewModel
+    var tipJarManager: TipJarManager
+    var storeManager: StoreManager
+
     @State private var showSettings = false
-    @State private var showSupport = false
+    @State private var showAbout = false
     @State private var showPrivacy = false
+    @State private var showTipDialog = false
+    @State private var previousGoalReached = false
 
     var body: some View {
         ScrollView {
@@ -103,7 +108,7 @@ struct DashboardView: View {
         .navigationTitle("Finanz-Coach")
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
-                Button { showSupport = true } label: {
+                Button { showAbout = true } label: {
                     Image(systemName: "heart.circle.fill").foregroundStyle(.red)
                 }
             }
@@ -117,7 +122,43 @@ struct DashboardView: View {
             }
         }
         .sheet(isPresented: $showSettings) { SetupView(viewModel: viewModel) }
-        .sheet(isPresented: $showSupport) { SupportView() }
+        .sheet(isPresented: $showAbout) {
+            NavigationStack {
+                DeadRabbitAboutView(storeManager: storeManager, tipJarManager: tipJarManager)
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button("Fertig") { showAbout = false }
+                        }
+                    }
+            }
+        }
         .sheet(isPresented: $showPrivacy) { PrivacyPolicyView() }
+        .sheet(isPresented: $showTipDialog) {
+            TipJarDialogView(tipJarManager: tipJarManager, storeManager: storeManager)
+        }
+        .onAppear {
+            tipJarManager.recordAppOpen()
+            previousGoalReached = viewModel.currentTotal >= viewModel.targetGoal
+        }
+        .onChange(of: tipJarManager.shouldShowTipDialog) { _, shouldShow in
+            if shouldShow {
+                showTipDialog = true
+            }
+        }
+        .onChange(of: showTipDialog) { _, isShowing in
+            if !isShowing {
+                tipJarManager.shouldShowTipDialog = false
+            }
+        }
+        .onChange(of: viewModel.currentTotal) { oldValue, newValue in
+            let goalNowReached = newValue >= viewModel.targetGoal
+            if goalNowReached && !previousGoalReached {
+                tipJarManager.recordGoalReached()
+                if tipJarManager.shouldShowTipDialog {
+                    showTipDialog = true
+                }
+            }
+            previousGoalReached = goalNowReached
+        }
     }
 }
