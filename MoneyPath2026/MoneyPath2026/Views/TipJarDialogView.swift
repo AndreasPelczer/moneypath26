@@ -27,6 +27,8 @@ struct TipJarDialogView: View {
                     EmptyView()
                 }
             }
+            .frame(maxWidth: 500)
+            .frame(maxWidth: .infinity)
             .animation(.easeInOut(duration: 0.3), value: step)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {

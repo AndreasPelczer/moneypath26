@@ -4,7 +4,13 @@ struct CircularGoalView: View {
     let current: Double
     let target: Double
     let month: String
-    
+
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+    private var ringHeight: CGFloat {
+        horizontalSizeClass == .regular ? 260 : 180
+    }
+
     var body: some View {
         VStack {
             Text("Voraussichtlicher Stand \(month)").font(.caption)
@@ -17,7 +23,7 @@ struct CircularGoalView: View {
                     Text("\(current, specifier: "%.0f") €").font(.title.bold())
                     Text("Ziel: \(target, specifier: "%.0f") €").font(.caption2)
                 }
-            }.frame(height: 180)
+            }.frame(height: ringHeight)
         }
         .padding()
         .background(RoundedRectangle(cornerRadius: 30).fill(Color(.secondarySystemBackground)))

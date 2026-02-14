@@ -11,58 +11,34 @@ struct DashboardView: View {
     @State private var showTipDialog = false
     @State private var previousGoalReached = false
 
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+    private var isRegularWidth: Bool {
+        horizontalSizeClass == .regular
+    }
+
     var body: some View {
         ScrollView {
             VStack(spacing: 25) {
-                // Sparziel-Ring
-                CircularGoalView(
-                    current: viewModel.prognosisData[viewModel.selectedMonthIndex],
-                    target: viewModel.targetGoal,
-                    month: viewModel.monthNames[viewModel.selectedMonthIndex]
-                )
+                if isRegularWidth {
+                    iPadTopSection
+                } else {
+                    // Sparziel-Ring
+                    CircularGoalView(
+                        current: viewModel.prognosisData[viewModel.selectedMonthIndex],
+                        target: viewModel.targetGoal,
+                        month: viewModel.monthNames[viewModel.selectedMonthIndex]
+                    )
 
-                // Monats-Slider
-                VStack(spacing: 8) {
-                    Text(viewModel.selectedMonthLabel)
-                        .font(.title3.bold())
-                        .contentTransition(.numericText())
-                        .animation(.default, value: viewModel.selectedMonthIndex)
+                    monthSliderSection
 
-                    HStack {
-                        Text(viewModel.monthNames.first ?? "")
-                            .font(.caption2).foregroundStyle(.secondary)
-                        Slider(
-                            value: Binding(
-                                get: { Double(viewModel.selectedMonthIndex) },
-                                set: { viewModel.selectedMonthIndex = Int($0.rounded()) }
-                            ),
-                            in: 0...11,
-                            step: 1
-                        )
-                        .tint(.blue)
-                        Text(viewModel.monthNames.last ?? "")
-                            .font(.caption2).foregroundStyle(.secondary)
-                    }
-
-                    HStack(spacing: 0) {
-                        ForEach(0..<12, id: \.self) { i in
-                            Circle()
-                                .fill(i == viewModel.selectedMonthIndex ? Color.blue : Color.blue.opacity(0.2))
-                                .frame(width: 6, height: 6)
-                            if i < 11 { Spacer() }
-                        }
-                    }
-                    .padding(.horizontal, 6)
+                    // Extra Money
+                    InfoStrategyBox(
+                        amount: viewModel.accumulatedExtraMoney,
+                        extraName: viewModel.extraMoneyName,
+                        month: viewModel.monthNames[viewModel.selectedMonthIndex]
+                    )
                 }
-                .padding()
-                .background(RoundedRectangle(cornerRadius: 25).fill(Color(.secondarySystemBackground)))
-
-                // Extra Money - das Herzstück
-                InfoStrategyBox(
-                    amount: viewModel.accumulatedExtraMoney,
-                    extraName: viewModel.extraMoneyName,
-                    month: viewModel.monthNames[viewModel.selectedMonthIndex]
-                )
 
                 // Spar-Hebel
                 VStack(spacing: 20) {
@@ -89,21 +65,27 @@ struct DashboardView: View {
                 .background(RoundedRectangle(cornerRadius: 25).fill(Color(.secondarySystemBackground)))
 
                 // Lifestyle-Hebel
-                VStack(spacing: 20) {
-                    Text("Deine Hebel").font(.headline).frame(maxWidth: .infinity, alignment: .leading)
-                    BudgetSlider(title: "Lebensmittel", value: $viewModel.foodBudget, range: 50...500, color: .green, icon: "cart.fill")
-                    BudgetSlider(title: "Pflege & Hygiene", value: $viewModel.careBudget, range: 0...200, color: .teal, icon: "drop.fill")
-                    BudgetSlider(title: "Kleidung", value: $viewModel.clothingBudget, range: 0...300, color: .purple, icon: "tshirt.fill")
-                    BudgetSlider(title: "Hobby", value: $viewModel.hobbyLimit, range: 0...800, color: .orange, icon: "bicycle")
-                    BudgetSlider(title: "Extras (Bier/Eis)", value: $viewModel.extrasBudget, range: 0...200, color: .red, icon: "mug.fill")
+                if isRegularWidth {
+                    iPadSlidersSection
+                } else {
+                    VStack(spacing: 20) {
+                        Text("Deine Hebel").font(.headline).frame(maxWidth: .infinity, alignment: .leading)
+                        BudgetSlider(title: "Lebensmittel", value: $viewModel.foodBudget, range: 50...500, color: .green, icon: "cart.fill")
+                        BudgetSlider(title: "Pflege & Hygiene", value: $viewModel.careBudget, range: 0...200, color: .teal, icon: "drop.fill")
+                        BudgetSlider(title: "Kleidung", value: $viewModel.clothingBudget, range: 0...300, color: .purple, icon: "tshirt.fill")
+                        BudgetSlider(title: "Hobby", value: $viewModel.hobbyLimit, range: 0...800, color: .orange, icon: "bicycle")
+                        BudgetSlider(title: "Extras (Bier/Eis)", value: $viewModel.extrasBudget, range: 0...200, color: .red, icon: "mug.fill")
+                    }
+                    .padding()
+                    .background(RoundedRectangle(cornerRadius: 25).fill(Color(.secondarySystemBackground)))
                 }
-                .padding()
-                .background(RoundedRectangle(cornerRadius: 25).fill(Color(.secondarySystemBackground)))
 
                 // Kosten-Übersicht
                 SavingsPowerChart(viewModel: viewModel)
             }
             .padding()
+            .frame(maxWidth: isRegularWidth ? 900 : .infinity)
+            .frame(maxWidth: .infinity)
         }
         .navigationTitle("Finanz-Coach")
         .toolbar {
@@ -160,5 +142,86 @@ struct DashboardView: View {
             }
             previousGoalReached = goalNowReached
         }
+    }
+
+    // MARK: - iPad Layouts
+
+    /// iPad top: Goal ring + month slider + info box side by side
+    private var iPadTopSection: some View {
+        HStack(alignment: .top, spacing: 20) {
+            CircularGoalView(
+                current: viewModel.prognosisData[viewModel.selectedMonthIndex],
+                target: viewModel.targetGoal,
+                month: viewModel.monthNames[viewModel.selectedMonthIndex]
+            )
+            .frame(maxWidth: .infinity)
+
+            VStack(spacing: 20) {
+                monthSliderSection
+
+                InfoStrategyBox(
+                    amount: viewModel.accumulatedExtraMoney,
+                    extraName: viewModel.extraMoneyName,
+                    month: viewModel.monthNames[viewModel.selectedMonthIndex]
+                )
+            }
+            .frame(maxWidth: .infinity)
+        }
+    }
+
+    /// iPad sliders: 2-column grid
+    private var iPadSlidersSection: some View {
+        VStack(spacing: 20) {
+            Text("Deine Hebel").font(.headline).frame(maxWidth: .infinity, alignment: .leading)
+
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 20), GridItem(.flexible(), spacing: 20)], spacing: 20) {
+                BudgetSlider(title: "Lebensmittel", value: $viewModel.foodBudget, range: 50...500, color: .green, icon: "cart.fill")
+                BudgetSlider(title: "Pflege & Hygiene", value: $viewModel.careBudget, range: 0...200, color: .teal, icon: "drop.fill")
+                BudgetSlider(title: "Kleidung", value: $viewModel.clothingBudget, range: 0...300, color: .purple, icon: "tshirt.fill")
+                BudgetSlider(title: "Hobby", value: $viewModel.hobbyLimit, range: 0...800, color: .orange, icon: "bicycle")
+                BudgetSlider(title: "Extras (Bier/Eis)", value: $viewModel.extrasBudget, range: 0...200, color: .red, icon: "mug.fill")
+            }
+        }
+        .padding()
+        .background(RoundedRectangle(cornerRadius: 25).fill(Color(.secondarySystemBackground)))
+    }
+
+    // MARK: - Shared Components
+
+    private var monthSliderSection: some View {
+        VStack(spacing: 8) {
+            Text(viewModel.selectedMonthLabel)
+                .font(.title3.bold())
+                .contentTransition(.numericText())
+                .animation(.default, value: viewModel.selectedMonthIndex)
+
+            HStack {
+                Text(viewModel.monthNames.first ?? "")
+                    .font(.caption2).foregroundStyle(.secondary)
+                Slider(
+                    value: Binding(
+                        get: { Double(viewModel.selectedMonthIndex) },
+                        set: { viewModel.selectedMonthIndex = Int($0.rounded()) }
+                    ),
+                    in: 0...11,
+                    step: 1
+                )
+                .tint(.blue)
+                Text(viewModel.monthNames.last ?? "")
+                    .font(.caption2).foregroundStyle(.secondary)
+            }
+
+            HStack(spacing: 0) {
+                ForEach(0..<12, id: \.self) { i in
+                    Circle()
+                        .fill(i == viewModel.selectedMonthIndex ? Color.blue : Color.blue.opacity(0.2))
+                        .frame(width: 6, height: 6)
+                    if i < 11 { Spacer() }
+                }
+            }
+            .padding(.horizontal, 6)
+        }
+        .padding()
+        .background(RoundedRectangle(cornerRadius: 25).fill(Color(.secondarySystemBackground)))
     }
 }
